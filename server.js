@@ -7,16 +7,15 @@ const helmet = require('helmet')
 const validTypes = [`Bug`, `Dark`, `Dragon`, `Electric`, `Fairy`, `Fighting`, `Fire`, `Flying`, `Ghost`, `Grass`, `Ground`, `Ice`, `Normal`, `Poison`, `Psychic`, `Rock`, `Steel`, `Water`]
 const POKEDEX = require('./pokedex.json');
 
-
+const morganSetting = process.env.NODE_ENV === "production" ? "tiny" : "dev";
 app.get("/types", handleGetTypes);
 app.use(validateBearerToken);
 app.get("/pokemon", handleGetPokemon)
-app.use(morgan(morganSetting))
+app.use(morgan(morganSetting));
 app.use(helmet())
 app.use(cors())
 
 //process.env.NODE_ENV = "production"
-const morganSetting = process.env.NODE_ENV === "production" ? "tiny" : "dev";
 function validateBearerToken(req, res, next) {
     const apiToken = process.env.API_TOKEN;
     const authToken = req.get('Authorization')
@@ -36,26 +35,26 @@ function handleGetPokemon(req, res) {
     let response = POKEDEX.pokemon;
   
     if (req.query.name) {
-        response = response.filter(pokemon =>
+        response = response.filter(pokemon =>{
           // case insensitive searching
-          pokemon.name.toLowerCase().includes(req.query.name.toLowerCase())
-        )
+          return pokemon.name.toLowerCase().includes(req.query.name.toLowerCase())
+        })
       }
     
       // filter our pokemon by type if type query param is present
       if (req.query.type) {
-        response = response.filter(pokemon =>
-          pokemon.type.includes(req.query.type)
-        )
+        response = response.filter(pokemon =>{
+         return pokemon.type.includes(req.query.type)
+        });
       }
     
       res.json(response);
     }
 
-    app.use((error,req,res,next) => {
-      let response;
-      if(process.env.NODE_ENV=== 'production'){
-        response = { error: {message: 'server error'}}
+  app.use((error,req,res,next) => {
+      let response
+      if(process.env.NODE_ENV === 'production'){
+        response = { error: { message: 'server error' }}
       } else {
         reponse = {error}
       }
